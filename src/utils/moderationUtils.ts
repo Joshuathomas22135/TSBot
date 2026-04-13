@@ -1,9 +1,11 @@
 export function parseDuration(durationString: string): number {
-    const regex = /(\d+)([hmdyk])/g;
+    const regex = /(\d+)([hdmy])/g;
     let duration = 0;
     let match;
+    let hasMatch = false;
 
     while ((match = regex.exec(durationString))) {
+        hasMatch = true;
         const value = parseInt(match[1], 10);
         const unit = match[2];
 
@@ -22,6 +24,11 @@ export function parseDuration(durationString: string): number {
                 break;
         }
     }
+
+    if (!hasMatch || regex.lastIndex !== durationString.length) {
+        return NaN;
+    }
+
     return duration;
 }
 

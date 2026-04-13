@@ -11,15 +11,11 @@ export default {
     run: async ({ client, interaction }) => {
         const { message, channel, guildId, guild, user } = interaction;
 
-        await interaction.deferReply({ ephemeral: false });
+        await interaction.deferReply({ ephemeral: true });
 
         try {
-            const embedAuthor = message.embeds[0]?.author;
-            const guildMembers = await guild?.members.fetch({
-                query: embedAuthor?.name,
-                limit: 1
-            });
-            const targetMember = guildMembers?.first();
+            const targetId = interaction.customId.split('_')[1];
+            const targetMember = await guild?.members.fetch(targetId);
 
             const Oembed = new EmbedBuilder()
                 .setTitle("Punishments")
@@ -31,23 +27,23 @@ export default {
 
             const otherRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
                 new ButtonBuilder()
-                    .setCustomId("banBtn")
+                    .setCustomId(`banBtn_${targetId}`)
                     .setLabel("Server ban")
                     .setStyle(ButtonStyle.Primary),
                 new ButtonBuilder()
-                    .setCustomId("kickBtn")
+                    .setCustomId(`kickBtn_${targetId}`)
                     .setLabel("Server kick")
                     .setStyle(ButtonStyle.Primary),
                 new ButtonBuilder()
-                    .setCustomId("tempMuteBtn")
+                    .setCustomId(`tempMuteBtn_${targetId}`)
                     .setLabel("Temp Mute")
                     .setStyle(ButtonStyle.Secondary),
                 new ButtonBuilder()
-                    .setCustomId("tempBanBtn")
+                    .setCustomId(`tempBanBtn_${targetId}`)
                     .setLabel("Temp Ban")
                     .setStyle(ButtonStyle.Secondary),
                 new ButtonBuilder()
-                    .setCustomId("cancelBtn")
+                    .setCustomId(`cancelBtn_${targetId}`)
                     .setLabel("Cancel")
                     .setStyle(ButtonStyle.Danger)
             );
@@ -56,6 +52,7 @@ export default {
 
         } catch (error) {
             console.error("Error in punishmentBtn:", error);
+            await interaction.followUp({ content: "An error occurred while processing the punishment.", ephemeral: true });
         }
     },
 } satisfies Button;

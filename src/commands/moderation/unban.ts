@@ -18,7 +18,16 @@ export default {
         const userId = interaction.options.getString("user_id", true);
         const rEmbed = new EmbedBuilder();
 
-        const dataGD = await ModerationModel.findOne({ GuildID: interaction.guild?.id });
+        let dataGD;
+        try {
+            dataGD = await ModerationModel.findOne({ GuildID: interaction.guild?.id });
+        } catch (error) {
+            console.error("Database error fetching moderation config:", error);
+            rEmbed
+                .setColor(HexToColor(mConfig.embedColorError))
+                .setDescription("Database error while fetching server configuration.");
+            return interaction.reply({ embeds: [rEmbed], ephemeral: true });
+        }
         if (!dataGD) {
             rEmbed
                 .setColor(HexToColor(mConfig.embedColorError))
@@ -33,8 +42,15 @@ export default {
             return interaction.reply({ embeds: [rEmbed], ephemeral: true });
         }
 
+        if (!interaction.guild) {
+            rEmbed
+                .setColor(HexToColor(mConfig.embedColorError))
+                .setDescription("This command can only be used in a server.");
+            return interaction.reply({ embeds: [rEmbed], ephemeral: true });
+        }
+
         try {
-            await interaction.guild?.members.unban(userId);
+            await interaction.guild.members.unban(userId);
 
             rEmbed
                 .setColor(HexToColor(mConfig.embedColorSuccess))

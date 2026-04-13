@@ -69,7 +69,7 @@ export default {
 
             const content = reasonMessage.content.toLowerCase();
             if (content === "cancel") {
-                await reasonMessage.delete();
+                reasonMessage.delete().catch(() => null);
                 rEmbed
                     .setColor(HexToColor(mConfig.embedColorError))
                     .setDescription("`❌` Moderation action cancelled.");
@@ -80,7 +80,7 @@ export default {
 
             reason = reasonMessage.content;
             if (reason === "-") reason = "No reason specified";
-            await reasonMessage.delete();
+            reasonMessage.delete().catch(() => null);
         } catch {
             rEmbed
                 .setColor(HexToColor(mConfig.embedColorError))
@@ -99,10 +99,15 @@ export default {
             return;
         }
 
-        await targetMember.setNickname(`Moderated Nickname ${tagline}`);
+        try {
+            await targetMember.setNickname(`Moderated Nickname ${tagline}`);
+        } catch (error) {
+            await interaction.editReply({ content: `Failed to change nickname: ${(error as Error).message}`, embeds: [] });
+            return;
+        }
 
         const { LogChannelID } = dataGD;
-        const loggingChannel = guild.channels.cache.get(LogChannelID);
+        const loggingChannel = guild.channels.cache.get(LogChannelID!) as any;
         if (loggingChannel && 'send' in loggingChannel) {
             const lEmbed = new EmbedBuilder()
                 .setColor("White")
@@ -123,7 +128,7 @@ export default {
                     text: `${client.user?.username} - Logging system`,
                 });
 
-            await loggingChannel.send({ embeds: [lEmbed] });
+            loggingChannel.send({ embeds: [lEmbed] }).catch(() => null);
         }
 
         rEmbed

@@ -33,7 +33,6 @@ export async function buttonPagination(
             return await interaction.editReply({
                 embeds: pages,
                 components: [],
-                fetchReply: true,
             });
         }
 
@@ -62,7 +61,6 @@ export async function buttonPagination(
         const message = await interaction.editReply({
             embeds: [pages[index]],
             components: [buttons],
-            fetchReply: true,
         });
 
         // Create button collector

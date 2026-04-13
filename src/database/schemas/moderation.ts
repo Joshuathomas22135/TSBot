@@ -5,6 +5,8 @@ const moderationSchema = new Schema<IModeration>(
     {
         GuildID: {
             type: String,
+            required: true,
+            unique: true,
         },
         LogChannelID: {
             type: String,
@@ -15,9 +17,6 @@ const moderationSchema = new Schema<IModeration>(
         MuteRoleID: {
             type: String,
         },
-    },
-    {
-
     }
 );
 

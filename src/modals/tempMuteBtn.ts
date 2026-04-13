@@ -178,8 +178,8 @@ export default {
         }, 2000);
     },
     options: {
-        userPermissions: ["ModerateMembers"],
-        botPermissions: ["ModerateMembers"],
+        userPermissions: ["ManageRoles"],
+        botPermissions: ["ManageRoles"],
     }
 } satisfies Modal;
 

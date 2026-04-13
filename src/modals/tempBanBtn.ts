@@ -10,12 +10,13 @@ export default {
     run: async ({ client, interaction }) => {
         const { message, guildId, guild, fields } = interaction;
 
-        const embedAuthor = message?.embeds[0].author;
-        const guildMembers = await guild?.members.fetch({
-            query: embedAuthor?.name,
-            limit: 1,
-        });
-        const targetMember = guildMembers?.first();
+        const targetId = interaction.customId.split('_')[1];
+        const targetMember = await guild?.members.fetch(targetId);
+
+        if (!targetMember) {
+            await interaction.reply({ content: "Target member not found.", flags: 64 });
+            return;
+        }
 
         const banTime = fields.getTextInputValue("tempbanTime");
         const banReason = fields.getTextInputValue("tempbanReason");
@@ -32,8 +33,8 @@ export default {
 
         await interaction.deferReply({ ephemeral: false });
 
-        const targetId = targetMember?.id;
-        if (!targetId) {
+        const targetUserId = targetMember?.id;
+        if (!targetUserId) {
             await interaction.editReply({ content: "Could not identify target member ID." });
             return;
         }
@@ -80,29 +81,29 @@ export default {
 
                 const externalGuild = client.guilds.cache.get(GuildID);
                 if (!externalGuild) continue;
-                
+
                 const clientUserId = client.user?.id;
                 if (!clientUserId) continue;
-                
+
                 const externalLogChannel = externalGuild.channels.cache.get(LogChannelID);
                 const externalBot = await externalGuild.members.fetch(clientUserId).catch(() => null);
                 if (!externalBot) continue;
 
                 try {
                     if (!targetMember?.id) continue;
-                    
+
                     const externalMember = await externalGuild.members.fetch(targetMember.id).catch(() => null);
                     if (!externalMember) continue;
 
                     const externalMemberHighest = externalMember.roles.highest.position;
                     const externalBotHighest = externalBot.roles.highest.position;
-                    
+
                     if (externalMemberHighest >= externalBotHighest) {
                         continue;
                     }
 
                     await externalGuild.bans.create(externalMember, {
-                        reason: "Autpmatic Multi Guilded Ban"
+                        reason: "Automatic Multi Guilded Ban"
                     });
 
                     const lEmbed = new EmbedBuilder()

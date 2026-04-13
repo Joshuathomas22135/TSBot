@@ -5,10 +5,12 @@ export default {
     customId: "addRoleBtn",
 
     run: async ({ client, interaction }) => {
+        const targetId = interaction.customId.split('_')[1];
+
         const addRoleMdl = new ModalBuilder()
-            .setCustomId("addRoleMdl")
+            .setCustomId(`addRoleMdl_${targetId}`)
             .setTitle("Add a Role");
-            
+
         const RoleIdInput = new TextInputBuilder()
             .setCustomId("RoleIdInput")
             .setLabel("Role ID")

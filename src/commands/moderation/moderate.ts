@@ -26,12 +26,20 @@ export default {
         ),
 
     run: async ({ client, interaction }) => {
-            const targetUser = interaction.options.getUser("user", true);
-    
+        if (!interaction.guild) {
+            await interaction.reply({
+                content: "This command can only be used in a server.",
+                flags: 64,
+            });
+            return;
+        }
+
+        const targetUser = interaction.options.getUser("user", true);
+
 
         let targetMember: GuildMember;
         try {
-            targetMember = await interaction.guild?.members.fetch(targetUser.id);
+            targetMember = await interaction.guild.members.fetch(targetUser.id);
         } catch (err) {
             await interaction.reply({
                 content: "Could not find that member in this server.",
@@ -45,7 +53,7 @@ export default {
         let config;
         try {
             config = await ModerationModel.findOne({ GuildID: interaction.guild?.id });
-        
+
         } catch (dbError) {
             await interaction.reply({
                 content: "An error occurred while checking server configuration.",
@@ -85,20 +93,20 @@ export default {
             return;
         }
 
-        // Build buttons (note: they currently don't include target ID – you might want to fix that)
+        // Build buttons
         const moderationButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
             new ButtonBuilder()
-                .setCustomId("punishmentBtn")
+                .setCustomId(`punishmentBtn_${targetMember.id}`)
                 .setEmoji("👟")
                 .setLabel("Punishments")
                 .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
-                .setCustomId("otherBtn")
+                .setCustomId(`otherBtn_${targetMember.id}`)
                 .setLabel("Utility")
                 .setEmoji("📋")
                 .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
-                .setCustomId("cancelBtn")
+                .setCustomId(`cancelBtn_${targetMember.id}`)
                 .setEmoji("❌")
                 .setLabel("Cancel")
                 .setStyle(ButtonStyle.Secondary)
@@ -121,7 +129,7 @@ export default {
             ephemeral: true,
         });
     },
-    
+
     options: {
         userPermissions: ["ModerateMembers"]
     }

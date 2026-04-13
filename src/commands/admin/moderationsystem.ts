@@ -2,7 +2,8 @@ import {
     SlashCommandBuilder,
     ChannelType,
     EmbedBuilder,
-    TextChannel,} from "discord.js";
+    TextChannel,
+} from "discord.js";
 import { Command } from "@/types";
 import { ModerationModel } from "@/database";
 import { mConfig, suspiciousUsers } from "@/config";
@@ -31,6 +32,12 @@ export default {
                 )
                 .addBooleanOption(option =>
                     option
+                        .setName("ban_suspicious")
+                        .setDescription("Whether to ban users from the suspicious list")
+                        .setRequired(false)
+                )
+                .addBooleanOption(option =>
+                    option
                         .setName("multi_guilded")
                         .setDescription("Adds your server on the list of allowing multi-guilded moderation.")
                         .setRequired(true)
@@ -56,8 +63,9 @@ export default {
             const multiGuilded = interaction.options.getBoolean("multi_guilded");
             const muteRole = interaction.options.getRole("mute_role");
             const loggingChannel = interaction.options.getChannel("logging_channel") as TextChannel
+            const banSuspicious = interaction.options.getBoolean("ban_suspicious") || false;
 
-            let dataGD = await ModerationModel.findOne({ GuildId: interaction.guildId });
+            let dataGD = await ModerationModel.findOne({ GuildID: interaction.guildId });
 
             if (!dataGD) {
                 rEmbed
@@ -101,47 +109,49 @@ export default {
                 }, 2000)
 
                 // Level 3
-                let i;
-                for (i = 0; i < suspiciousUsers.ids.length; i++) {
-                    try {
-                        const suspiciousUser = await interaction.guild?.members.fetch(
-                            suspiciousUsers.ids[i]
-                        );
+                if (banSuspicious) {
+                    let i;
+                    for (i = 0; i < suspiciousUsers.ids.length; i++) {
+                        try {
+                            const suspiciousUser = await interaction.guild?.members.fetch(
+                                suspiciousUsers.ids[i]
+                            );
 
-                        if (!suspiciousUser) continue;
+                            if (!suspiciousUser) continue;
 
-                        await interaction.guild?.bans.create(suspiciousUser, {
-                            deleteMessageSeconds: 60 * 60 * 24 * 7,
-                            reason: "Suspicious User listed by the developer.",
-                        })
-
-                        const lEmbed = new EmbedBuilder()
-                            .setColor("White")
-                            .setTitle("`⛔` User Banned")
-                            .setAuthor({
-                                name: suspiciousUser?.user.username,
-                                iconURL: suspiciousUser?.user.displayAvatarURL(),
+                            await interaction.guild?.bans.create(suspiciousUser, {
+                                deleteMessageSeconds: 60 * 60 * 24 * 7,
+                                reason: "Suspicious User listed by the developer.",
                             })
-                            .addFields(
-                                {
-                                    name: "Banned by",
-                                    value: `<@${client.user?.id}>`,
-                                    inline: true,
-                                },
-                                {
-                                    name: "Reason",
-                                    value: `\`Suspicious user listed by developer. Please contact the developer if this is a mistake.\``,
-                                    inline: true,
-                                }
-                            )
-                            .setFooter({
-                                iconURL: `${client.user?.displayAvatarURL()}`,
-                                text: `${client.user?.username} - Logging system`,
-                            });
 
-                        await loggingChannel?.send({ embeds: [lEmbed] });
-                    } catch (err) {
-                        continue;
+                            const lEmbed = new EmbedBuilder()
+                                .setColor("White")
+                                .setTitle("`⛔` User Banned")
+                                .setAuthor({
+                                    name: suspiciousUser?.user.username,
+                                    iconURL: suspiciousUser?.user.displayAvatarURL(),
+                                })
+                                .addFields(
+                                    {
+                                        name: "Banned by",
+                                        value: `<@${client.user?.id}>`,
+                                        inline: true,
+                                    },
+                                    {
+                                        name: "Reason",
+                                        value: `\`Suspicious user listed by developer. Please contact the developer if this is a mistake.\``,
+                                        inline: true,
+                                    }
+                                )
+                                .setFooter({
+                                    iconURL: `${client.user?.displayAvatarURL()}`,
+                                    text: `${client.user?.username} - Logging system`,
+                                });
+
+                            await loggingChannel?.send({ embeds: [lEmbed] });
+                        } catch (err) {
+                            continue;
+                        }
                     }
                 }
             } else {
