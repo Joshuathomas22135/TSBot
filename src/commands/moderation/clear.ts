@@ -1,7 +1,8 @@
-import { SlashCommandBuilder, EmbedBuilder, TextChannel } from "discord.js";
+import { SlashCommandBuilder, EmbedBuilder, TextChannel, Message } from "discord.js";
 import { mConfig } from "@/config";
 import { Command } from "@/types";
 import { HexToColor } from "@/utils/color";
+import { Logger } from "@/utils/logger";
 
 export default {
     data: new SlashCommandBuilder()
@@ -22,16 +23,8 @@ export default {
         ),
 
     run: async ({ client, interaction }) => {
-        let amount = interaction.options.getInteger("amount")!;
+        let amount = interaction.options.getInteger("amount", true);
         const target = interaction.options.getUser("target");
-        const multiMsg = amount === 1 ? "message" : "messages";
-
-        if (!amount || amount > 100 || amount < 1) {
-            return interaction.reply({
-                content: "Please specify an amount between 1 and 100 before deleting messages.",
-                ephemeral: true,
-            });
-        }
 
         await interaction.deferReply({ ephemeral: true });
 
@@ -55,20 +48,28 @@ export default {
 
             const clearEmbed = new EmbedBuilder().setColor(HexToColor(mConfig.embedColorSuccess));
 
-            let messagesToDelete: any[] = [];
+            let messagesToDelete: Message[] = [];
 
             if (target) {
                 channelMessages.forEach((m) => {
-                    if (m.author.id === target.id && messagesToDelete.length < amount!) {
+                    if (m.author.id === target.id && messagesToDelete.length < amount) {
                         messagesToDelete.push(m);
                     }
                 });
 
+                if (messagesToDelete.length === 0) {
+                    return await interaction.editReply({
+                        content: `No messages from ${target} found in the recent fetch. Try increasing the fetch range.`,
+                    });
+                }
+
+                const multiMsg = messagesToDelete.length === 1 ? "message" : "messages";
                 clearEmbed.setDescription(
                     `\`✅\` Successfully cleared \`${messagesToDelete.length}\` ${multiMsg} from ${target} in ${textChannel}.`
                 );
             } else {
-                messagesToDelete = channelMessages.first(amount) as any[];
+                messagesToDelete = channelMessages.first(amount) as Message[];
+                const multiMsg = messagesToDelete.length === 1 ? "message" : "messages";
                 clearEmbed.setDescription(
                     `\`✅\` Successfully cleared \`${messagesToDelete.length}\` ${multiMsg} in ${textChannel}.`
                 );
@@ -80,6 +81,9 @@ export default {
 
             await interaction.editReply({ embeds: [clearEmbed] });
         } catch (error) {
+            const logger = new Logger();
+            logger.error('COMMAND', `Error clearing messages in /clear command: ${error instanceof Error ? error.message : 'Unknown error'}`);
+
             // Safely respond based on whether the interaction was acknowledged
             if (interaction.deferred || interaction.replied) {
                 await interaction.followUp({

@@ -1,7 +1,10 @@
 import { SlashCommandBuilder, EmbedBuilder, ChannelType } from 'discord.js';
 import stringifyLanguage, { LANGUAGE_CHOICES, LANGUAGE_TO_COUNTRY } from '@/utils/stringifyLanguage';
 import translate from '@iamtraction/google-translate';
+import { Logger } from '@/utils/logger';
 import { Command } from '@/types';
+
+const logger = new Logger();
 
 export default {
     data: new SlashCommandBuilder()
@@ -20,6 +23,7 @@ export default {
                 .setName('language')
                 .setDescription('The language you want to translate the message to.')
                 .addChoices(...LANGUAGE_CHOICES)
+                .setRequired(true)
         ),
 
     run: async ({ interaction, client }) => {
@@ -53,11 +57,17 @@ export default {
             return;
         }
 
-        const language = interaction.options.getString('language') || 'en';
+        const language = interaction.options.getString('language', true);
         const languageName = stringifyLanguage(language);
 
         try {
-            const res = await translate(message, { to: language });
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Translation request timeout')), 10000)
+            );
+            const res = await Promise.race([
+                translate(message, { to: language }),
+                timeoutPromise
+            ]) as Awaited<ReturnType<typeof translate>>;
             const originalLanguage = stringifyLanguage(res.from.language.iso);
             const translatedLanguage = languageName;
 
@@ -86,8 +96,12 @@ export default {
 
             await interaction.editReply({ embeds: [rEmbed] });
         } catch (error) {
-            console.error('Translation error:', error);
-            await interaction.editReply({ content: 'An error occurred during translation.' });
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            const isSafeError = errorMessage === 'Translation request timeout';
+            logger.error('COMMAND', `Translation error: ${isSafeError ? 'timeout' : 'translation_failed'}`);
+            await interaction.editReply({
+                content: isSafeError ? 'Translation request timed out. Please try again.' : 'An error occurred during translation.'
+            });
         }
     }
 } satisfies Command;
