@@ -38,18 +38,11 @@ export default {
             return;
         }
 
-        if (!targetMember) {
-            await interaction.editReply({
-                content: "Could not find that member in this server.",
-            });
-            return;
-        }
-
         const muteTime = fields.getTextInputValue("tempMuteTime");
         const muteReason = fields.getTextInputValue("tempMuteReason");
 
         const muteDuration = parseDuration(muteTime);
-        if (muteDuration <= 0) {
+        if (!Number.isFinite(muteDuration) || muteDuration <= 0) {
             await interaction.editReply({
                 content: "Invalid mute duration. Please use a valid format (e.g., 10m, 2h, 1d).",
             });
@@ -102,54 +95,55 @@ export default {
                 if (!cfg.GuildID || !cfg.LogChannelID) continue;
                 if (cfg.GuildID === guildId) continue;
 
-            const externalGuild = client.guilds.cache.get(cfg.GuildID);
-            if (!externalGuild) continue;
+                const externalGuild = client.guilds.cache.get(cfg.GuildID);
+                if (!externalGuild) continue;
 
-            // Use external guild's own mute role ID
-            const externalMuteRoleId = cfg.MuteRoleID;
-            if (!externalMuteRoleId) continue;
+                // Use external guild's own mute role ID
+                const externalMuteRoleId = cfg.MuteRoleID;
+                if (!externalMuteRoleId) continue;
 
-            const externalLogChannel = externalGuild.channels.cache.get(cfg.LogChannelID);
-            // Logging is best‑effort; mute proceeds even without a valid log channel
-            const canLog = externalLogChannel && externalLogChannel.isTextBased();
+                const externalLogChannel = externalGuild.channels.cache.get(cfg.LogChannelID);
+                // Logging is best‑effort; mute proceeds even without a valid log channel
+                const canLog = externalLogChannel && externalLogChannel.isTextBased();
 
-            const externalBot = await externalGuild.members.fetch(client.user!.id).catch(() => null);
-            if (!externalBot) continue;
+                const externalBot = await externalGuild.members.fetch(client.user!.id).catch(() => null);
+                if (!externalBot) continue;
 
-            try {
-                const externalMember = await externalGuild.members.fetch(targetMember.id);
-                if (!externalMember) continue;
-                if (externalMember.roles.highest.position >= externalBot.roles.highest.position) continue;
+                try {
+                    const externalMember = await externalGuild.members.fetch(targetMember.id);
+                    if (!externalMember) continue;
+                    if (externalMember.roles.highest.position >= externalBot.roles.highest.position) continue;
 
-                // ✅ Non‑null assertion on externalMuteRoleId for roles.add
-                await externalMember.roles.add(externalMuteRoleId!, `Tempmuted for ${muteReason} | Multi‑guild`);
-                // ✅ Non‑null assertion on externalMuteRoleId for scheduleUnmute
-                scheduleUnmute(externalMember, externalMuteRoleId!, muteDuration);
+                    // ✅ Non‑null assertion on externalMuteRoleId for roles.add
+                    await externalMember.roles.add(externalMuteRoleId!, `Tempmuted for ${muteReason} | Multi‑guild`);
+                    // ✅ Non‑null assertion on externalMuteRoleId for scheduleUnmute
+                    scheduleUnmute(externalMember, externalMuteRoleId!, muteDuration);
 
-                if (canLog) {
-                    const lEmbed = new EmbedBuilder()
-                        .setColor(HexToColor(mConfig.embedColorSuccess))
-                        .setTitle("`⛔` User temp muted (multi‑guild)")
-                        .setAuthor({
-                            name: externalMember.user.username,
-                            iconURL: externalMember.user.displayAvatarURL({ extension: 'png', size: 1024 }),
-                        })
-                        .setDescription(`\`💡\` To manually unmute ${externalMember.user.username}, use the appropriate unmute command.`)
-                        .addFields(
-                            { name: "Tempmuted by", value: `<@${interaction.user.id}>`, inline: true },
-                            { name: "Reason", value: `Automatic multi‑guild temp mute.`, inline: true },
-                            { name: "Expires", value: `<t:${muteEndTime}:R>`, inline: true }
-                        )
-                        .setFooter({
-                            iconURL: client.user!.displayAvatarURL({ extension: 'png', size: 1024 }),
-                            text: `${client.user!.username} - Logging system`,
-                        });
+                    if (canLog) {
+                        const lEmbed = new EmbedBuilder()
+                            .setColor(HexToColor(mConfig.embedColorSuccess))
+                            .setTitle("`⛔` User temp muted (multi‑guild)")
+                            .setAuthor({
+                                name: externalMember.user.username,
+                                iconURL: externalMember.user.displayAvatarURL({ extension: 'png', size: 1024 }),
+                            })
+                            .setDescription(`\`💡\` To manually unmute ${externalMember.user.username}, use the appropriate unmute command.`)
+                            .addFields(
+                                { name: "Tempmuted by", value: `<@${interaction.user.id}>`, inline: true },
+                                { name: "Reason", value: `Automatic multi‑guild temp mute.`, inline: true },
+                                { name: "Expires", value: `<t:${muteEndTime}:R>`, inline: true }
+                            )
+                            .setFooter({
+                                iconURL: client.user!.displayAvatarURL({ extension: 'png', size: 1024 }),
+                                text: `${client.user!.username} - Logging system`,
+                            });
 
-                    await externalLogChannel.send({ embeds: [lEmbed] }).catch(() => null);
+                        await externalLogChannel.send({ embeds: [lEmbed] }).catch(() => null);
+                    }
+                } catch (error) {
+                    console.error("Error in multi‑guild temp mute:", error);
+                    // Continue to next guild
                 }
-            } catch (error) {
-                console.error("Error in multi‑guild temp mute:", error);
-                // Continue to next guild
             }
         }
 

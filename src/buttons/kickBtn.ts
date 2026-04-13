@@ -78,20 +78,20 @@ export default {
                 return null;
             });
 
-        const reasonObj = reasonCollector?.first();
-        let reason = reasonObj?.content;
+        const reasonMsg = reasonCollector;
+        let reason = reasonMsg?.content;
 
         if (!reason) return;
 
-        if (reasonObj.content === "-") reason = "No reason specified";
+        if (reason.trim() === "-") reason = "No reason specified";
 
-        reasonObj.delete();
+        await reasonMsg.delete().catch(() => null);
 
         // Level 2
         let dataMG = await ModerationModel.find({ MultiGuilded: true }) as IModeration[];
         const invokerId = user.id;
 
-        if (dataMG) {
+        if (dataMG && dataMG.length > 0) {
             let i;
             for (i = 0; i < dataMG.length; i++) {
                 const { GuildID, LogChannelID } = dataMG[i];
@@ -155,63 +155,63 @@ export default {
                     continue;
                 }
             }
+        }
 
+        try {
+            await targetMember.kick(reason);
+        } catch (err) {
+            logger.error(
+                "BUTTON",
+                `Failed to kick target ${targetMember.id} in guild ${guildId}: ${(err as Error).message}\n${(err as Error).stack ?? ""}`
+            );
+            const errorEmbed = new EmbedBuilder()
+                .setColor(HexToColor(mConfig.embedColorError))
+                .setDescription("`❌` Failed to kick the member. Please check role hierarchy and permissions.");
+            await message.edit({ embeds: [errorEmbed] });
+            return;
+        }
+
+        const dataGD = await ModerationModel.findOne({ GuildID: guildId });
+        const logChannel = dataGD?.LogChannelID ? guild?.channels.cache.get(dataGD.LogChannelID) as any : null;
+
+        const lEmbed = new EmbedBuilder()
+            .setColor(HexToColor("FFFFFF"))
+            .setTitle("`❌` User Kicked")
+            .setAuthor({
+                name: targetMember.user.username,
+                iconURL: targetMember.user.displayAvatarURL(),
+            })
+            .setDescription(
+                `\`💡\` ${targetMember.user.username} has been kicked from the server.`
+            )
+            .addFields(
+                { name: "Kicked by", value: `<@${user.id}>`, inline: true },
+                { name: "Reason", value: `${reason}`, inline: true }
+            )
+            .setFooter({
+                iconURL: client.user?.displayAvatarURL(),
+                text: `${client.user?.username} - Logging system`,
+            });
+
+        if (logChannel) {
             try {
-                await targetMember.kick(reason);
+                await logChannel.send({ embeds: [lEmbed] });
             } catch (err) {
                 logger.error(
                     "BUTTON",
-                    `Failed to kick target ${targetMember.id} in guild ${guildId}: ${(err as Error).message}\n${(err as Error).stack ?? ""}`
+                    `Failed to send kick log to channel ${dataGD?.LogChannelID} in guild ${guildId}: ${(err as Error).message}\n${(err as Error).stack ?? ""}`
                 );
-                const errorEmbed = new EmbedBuilder()
-                    .setColor(HexToColor(mConfig.embedColorError))
-                    .setDescription("`❌` Failed to kick the member. Please check role hierarchy and permissions.");
-                await message.edit({ embeds: [errorEmbed] });
-                return;
             }
-
-            const dataGD = await ModerationModel.findOne({ GuildID: guildId });
-            const logChannel = dataGD?.LogChannelID ? guild?.channels.cache.get(dataGD.LogChannelID) as any : null;
-
-            const lEmbed = new EmbedBuilder()
-                .setColor(HexToColor("FFFFFF"))
-                .setTitle("`❌` User Kicked")
-                .setAuthor({
-                    name: targetMember.user.username,
-                    iconURL: targetMember.user.displayAvatarURL(),
-                })
-                .setDescription(
-                    `\`💡\` ${targetMember.user.username} has been kicked from the server.`
-                )
-                .addFields(
-                    { name: "Kicked by", value: `<@${user.id}>`, inline: true },
-                    { name: "Reason", value: `${reason}`, inline: true }
-                )
-                .setFooter({
-                    iconURL: client.user?.displayAvatarURL(),
-                    text: `${client.user?.username} - Logging system`,
-                });
-
-            if (logChannel) {
-                try {
-                    await logChannel.send({ embeds: [lEmbed] });
-                } catch (err) {
-                    logger.error(
-                        "BUTTON",
-                        `Failed to send kick log to channel ${dataGD?.LogChannelID} in guild ${guildId}: ${(err as Error).message}\n${(err as Error).stack ?? ""}`
-                    );
-                }
-            }
-
-            rEmbed
-                .setColor(HexToColor(mConfig.embedColorSuccess))
-                .setDescription(`\`✅\` Successfully kicked ${targetMember.user.username}.`);
-
-            await message.edit({ embeds: [rEmbed] });
-            setTimeout(() => {
-                message.delete();
-            }, 2_000);
         }
+
+        rEmbed
+            .setColor(HexToColor(mConfig.embedColorSuccess))
+            .setDescription(`\`✅\` Successfully kicked ${targetMember.user.username}.`);
+
+        await message.edit({ embeds: [rEmbed] });
+        setTimeout(() => {
+            message.delete();
+        }, 2_000);
 
     },
     options: {

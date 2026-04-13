@@ -49,12 +49,6 @@ export default {
             return interaction.reply({ embeds: [rEmbed], ephemeral: true });
         }
 
-        if (!interaction.guild) {
-            rEmbed
-                .setColor(HexToColor(mConfig.embedColorError))
-                .setDescription("This command can only be used in a server.");
-            return interaction.reply({ embeds: [rEmbed], ephemeral: true });
-        }
 
         try {
             await interaction.guild.members.unban(userId);

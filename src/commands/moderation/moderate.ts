@@ -4,8 +4,6 @@ import {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
-    ChatInputCommandInteraction,
-    Client,
     GuildMember,
 } from "discord.js";
 import { mConfig } from "@/config/index.js";

@@ -5,4 +5,5 @@ export interface IModeration extends Document {
     LogChannelID?: string;
     MultiGuilded?: boolean;
     MuteRoleID?: string;
+    BanSuspicious?: boolean;
 }

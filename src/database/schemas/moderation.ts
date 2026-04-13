@@ -17,6 +17,9 @@ const moderationSchema = new Schema<IModeration>(
         MuteRoleID: {
             type: String,
         },
+        BanSuspicious: {
+            type: Boolean,
+        },
     }
 );
 

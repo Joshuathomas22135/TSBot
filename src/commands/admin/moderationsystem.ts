@@ -151,6 +151,10 @@ export default {
 
                             await loggingChannel?.send({ embeds: [lEmbed] });
                         } catch (err) {
+                            console.error(
+                                `Failed to ban suspicious user ${suspiciousUsers.ids[i]} in guild ${interaction.guildId}:`,
+                                err
+                            );
                             continue;
                         }
                     }
@@ -189,7 +193,7 @@ export default {
                         }
                     );
 
-                interaction.reply({ embeds: [rEmbed], ephemeral: true });
+                await interaction.reply({ embeds: [rEmbed], ephemeral: true });
             }
         }
 
@@ -207,7 +211,7 @@ export default {
                         `\`❌\` This server isn't configured yet.\n\n\`💡\` Use \`/moderationsystem configure\` to start configuring this server`
                     );
             }
-            interaction.reply({ embeds: [rEmbed], ephemeral: true });
+            await interaction.reply({ embeds: [rEmbed], ephemeral: true });
         }
     },
 
