@@ -18,9 +18,16 @@ export default {
         const userId = interaction.options.getString("user_id", true);
         const rEmbed = new EmbedBuilder();
 
+        if (!interaction.guild || !interaction.guild.id) {
+            rEmbed
+                .setColor(HexToColor(mConfig.embedColorError))
+                .setDescription("This command can only be used in a server.");
+            return interaction.reply({ embeds: [rEmbed], ephemeral: true });
+        }
+
         let dataGD;
         try {
-            dataGD = await ModerationModel.findOne({ GuildID: interaction.guild?.id });
+            dataGD = await ModerationModel.findOne({ GuildID: interaction.guild.id });
         } catch (error) {
             console.error("Database error fetching moderation config:", error);
             rEmbed
@@ -71,5 +78,6 @@ export default {
 
     options: {
         userPermissions: ["BanMembers"],
+        botPermissions: ["BanMembers"],
     }
 } satisfies Command;

@@ -1,4 +1,4 @@
-import { EmbedBuilder } from "discord.js";
+import { EmbedBuilder, Guild } from "discord.js";
 import { mConfig } from "@/config";
 import { ModerationModel } from "@/database";
 import { Modal } from "@/types";
@@ -22,6 +22,11 @@ export default {
         const banReason = fields.getTextInputValue("tempbanReason");
 
         const banDuration = parseDuration(banTime);
+        if (!Number.isFinite(banDuration) || banDuration <= 0) {
+            await interaction.reply({ content: "Invalid ban duration. Please use a valid format (e.g., 10m, 2h, 1d).", flags: 64 });
+            return;
+        }
+
         const banEndTime = Math.floor((Date.now() + banDuration) / 1000);
 
         const bEmbed = new EmbedBuilder()
@@ -39,32 +44,43 @@ export default {
             return;
         }
 
+        const banGuilds: Guild[] = [];
+
         try {
             await targetMember?.ban({ reason: `Temporarily banned for ${banReason} | Check logs for time` });
+            if (guild) banGuilds.push(guild);
         } catch (error) {
             console.error(`Failed to ban member ${targetId}:`, error);
+            await interaction.editReply({ content: "Failed to ban the target member. Please check my permissions and try again." }).catch(() => null);
             return;
         }
 
         const maxTimeoutDuration = 2147483647;
-        if (banDuration <= maxTimeoutDuration) {
-            setTimeout(async () => {
-                await guild?.members.unban(targetId);
-            }, banDuration);
-        } else {
-            const remainingBanDuration = banDuration - maxTimeoutDuration;
+        const scheduleUnbanForGuild = (unbanGuild: Guild) => {
+            if (banDuration <= maxTimeoutDuration) {
+                setTimeout(async () => {
+                    await unbanGuild.members.unban(targetId).catch((error) => {
+                        console.error(`Failed to unban ${targetId} in guild ${unbanGuild.id}:`, error);
+                    });
+                }, banDuration);
+            } else {
+                const remainingBanDuration = banDuration - maxTimeoutDuration;
 
-            setTimeout(async () => {
-                // Chain second timeout after first completes
-                if (remainingBanDuration > 0) {
-                    setTimeout(async () => {
-                        await guild?.members.unban(targetId);
-                    }, remainingBanDuration);
-                } else {
-                    await guild?.members.unban(targetId);
-                }
-            }, maxTimeoutDuration);
-        }
+                setTimeout(async () => {
+                    if (remainingBanDuration > 0) {
+                        setTimeout(async () => {
+                            await unbanGuild.members.unban(targetId).catch((error) => {
+                                console.error(`Failed to unban ${targetId} in guild ${unbanGuild.id}:`, error);
+                            });
+                        }, remainingBanDuration);
+                    } else {
+                        await unbanGuild.members.unban(targetId).catch((error) => {
+                            console.error(`Failed to unban ${targetId} in guild ${unbanGuild.id}:`, error);
+                        });
+                    }
+                }, maxTimeoutDuration);
+            }
+        };
 
         const followUpMessage = await interaction.followUp({ embeds: [bEmbed] });
         const followUpMessageId = followUpMessage.id;
@@ -106,6 +122,8 @@ export default {
                         reason: "Automatic Multi Guilded Ban"
                     });
 
+                    banGuilds.push(externalGuild);
+
                     const lEmbed = new EmbedBuilder()
                         .setColor(HexToColor(mConfig.embedColorSuccess))
                         .setTitle("`⛔` User Temp Banned")
@@ -135,10 +153,12 @@ export default {
                         await externalLogChannel.send({ embeds: [lEmbed] });
                     }
                 } catch (error) {
-                    continue
+                    continue;
                 }
             }
         }
+
+        banGuilds.forEach(scheduleUnbanForGuild);
 
     },
     options: {

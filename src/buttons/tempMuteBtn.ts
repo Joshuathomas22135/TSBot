@@ -10,8 +10,9 @@ export default {
     customId: "tempMuteBtn",
     run: async ({ client, interaction }) => {
         try {
+            const targetId = interaction.customId.split('_')[1];
             const tempMuteMdl = new ModalBuilder()
-                .setCustomId("tempMuteMdl")
+                .setCustomId(`tempMuteMdl_${targetId}`)
                 .setTitle("Temp Mute");
 
             const tempMuteTimeInput = new TextInputBuilder()
@@ -35,6 +36,9 @@ export default {
             return await interaction.showModal(tempMuteMdl)
         } catch (error) {
             console.error("Error in tempMuteBtn:", error);
+            if (!interaction.replied && !interaction.deferred) {
+                await interaction.reply({ content: "Failed to open modal.", ephemeral: true });
+            }
         }
     },
     options: {

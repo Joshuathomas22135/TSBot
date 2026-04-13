@@ -78,7 +78,8 @@ export default {
                     GuildID: interaction.guild?.id,
                     MultiGuilded: multiGuilded,
                     MuteRoleID: muteRole?.id,
-                    LogChannelID: loggingChannel?.id
+                    LogChannelID: loggingChannel?.id,
+                    BanSuspicious: banSuspicious,
                 })
 
                 await dataGD.save();
@@ -161,6 +162,7 @@ export default {
                         MultiGuilded: multiGuilded,
                         MuteRoleID: muteRole?.id,
                         LogChannelID: loggingChannel?.id,
+                        BanSuspicious: banSuspicious,
                     }
                 )
 
@@ -202,7 +204,7 @@ export default {
                 rEmbed
                     .setColor(HexToColor(mConfig.embedColorError))
                     .setDescription(
-                        `\`❌\` This server isn't configured yet.\n\n\`💡\` Use \`/moderatesystem configure\` to start configuring this server`
+                        `\`❌\` This server isn't configured yet.\n\n\`💡\` Use \`/moderationsystem configure\` to start configuring this server`
                     );
             }
             interaction.reply({ embeds: [rEmbed], ephemeral: true });

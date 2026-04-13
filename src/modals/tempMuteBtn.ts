@@ -19,8 +19,8 @@ export default {
             return;
         }
 
-        const embedAuthor = message.embeds[0]?.author;
-        if (!embedAuthor?.name) {
+        const targetId = interaction.customId.split('_')[1];
+        if (!targetId) {
             await interaction.reply({
                 content: "Could not identify target user.",
                 flags: 64,
@@ -30,11 +30,13 @@ export default {
 
         await interaction.deferReply({ flags: 64 });
 
-        const guildMembers = await guild.members.fetch({
-            query: embedAuthor.name,
-            limit: 1,
-        });
-        const targetMember = guildMembers.first();
+        const targetMember = await guild.members.fetch(targetId).catch(() => null);
+        if (!targetMember) {
+            await interaction.editReply({
+                content: "Could not find that member in this server.",
+            });
+            return;
+        }
 
         if (!targetMember) {
             await interaction.editReply({
@@ -68,12 +70,13 @@ export default {
         if (!config || !config.MuteRoleID) {
             const errorEmbed = new EmbedBuilder()
                 .setColor(HexToColor(mConfig.embedColorError))
-                .setDescription("`❌` Moderation system is not properly configured. Please run `/moderatesystem configure` first.");
+                .setDescription("`❌` Moderation system is not properly configured. Please run `/moderationsystem configure` first.");
             await interaction.followUp({ embeds: [errorEmbed], flags: 64 });
             return;
         }
 
         const muteRoleId = config.MuteRoleID;
+        const shouldPropagate = config.MultiGuilded === true;
 
         try {
             await targetMember.roles.add(muteRoleId, `Temporarily muted for ${muteReason} | Check logs for time`);
@@ -92,11 +95,12 @@ export default {
         // Send success message ephemerally by editing the deferred reply
         await interaction.editReply({ embeds: [mEmbed] });
 
-        // Multi‑guild propagation
-        const multiGuildConfigs = await ModerationModel.find({ MultiGuilded: true });
-        for (const cfg of multiGuildConfigs) {
-            if (!cfg.GuildID || !cfg.LogChannelID) continue;
-            if (cfg.GuildID === guildId) continue;
+        // Multi‑guild propagation only if this guild opted in
+        if (shouldPropagate) {
+            const multiGuildConfigs = await ModerationModel.find({ MultiGuilded: true });
+            for (const cfg of multiGuildConfigs) {
+                if (!cfg.GuildID || !cfg.LogChannelID) continue;
+                if (cfg.GuildID === guildId) continue;
 
             const externalGuild = client.guilds.cache.get(cfg.GuildID);
             if (!externalGuild) continue;

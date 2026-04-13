@@ -1,9 +1,10 @@
-import { EmbedBuilder, GuildMember } from "discord.js";
+import { EmbedBuilder, GuildMember, Message, PermissionFlagsBits } from "discord.js";
 import { ModerationModel } from "@/database";
 import { mConfig } from "@/config";
 import { Button } from "@/types";
 import { HexToColor } from "@/utils/color";
 import { IModeration } from "@/database/types";
+import { logger } from "@/utils/logger";
 
 export default {
     customId: "kickBtn",
@@ -33,11 +34,15 @@ export default {
 
         message.edit({ embeds: [rEmbed] });
 
-        const filter = (m: any) => m.author.id === user.id
+        const filter = (m: Message) => m.author.id === user.id;
         const reasonCollector = await (channel as any)?.awaitMessages({ filter, max: 1, time: 15_000, errors: ["time"] })
-            .then((reason: any) => {
-                if (reason.first().content.toLowerCase() === "cancel") {
-                    reason.first().delete();
+            .then((collected) => {
+                const response = collected.first();
+                const content = response?.content.trim() ?? "";
+                const normalized = content.toLowerCase();
+
+                if (!response || normalized === "" || normalized === "cancel") {
+                    response?.delete().catch(() => null);
                     rEmbed
                         .setColor(HexToColor(mConfig.embedColorError))
                         .setDescription("`❌` Moderation cancelled.");
@@ -45,9 +50,22 @@ export default {
                     setTimeout(() => {
                         message.delete();
                     }, 2_000);
-                    return;
+                    return null;
                 }
-                return reason;
+
+                if (content.length > 1024) {
+                    response?.delete().catch(() => null);
+                    rEmbed
+                        .setColor(HexToColor(mConfig.embedColorError))
+                        .setDescription("`❌` Reason is too long. Please provide a reason under 1024 characters.");
+                    message.edit({ embeds: [rEmbed] });
+                    setTimeout(() => {
+                        message.delete();
+                    }, 2_000);
+                    return null;
+                }
+
+                return response;
             })
             .catch(() => {
                 rEmbed
@@ -57,7 +75,7 @@ export default {
                 setTimeout(() => {
                     message.delete();
                 }, 2_000);
-                return;
+                return null;
             });
 
         const reasonObj = reasonCollector?.first();
@@ -70,7 +88,9 @@ export default {
         reasonObj.delete();
 
         // Level 2
-        let dataMG = await ModerationModel.find({ MultiGuilded: true }) as IModeration[]
+        let dataMG = await ModerationModel.find({ MultiGuilded: true }) as IModeration[];
+        const invokerId = user.id;
+
         if (dataMG) {
             let i;
             for (i = 0; i < dataMG.length; i++) {
@@ -78,19 +98,26 @@ export default {
                 if (GuildID === guildId || !GuildID || !LogChannelID) continue;
 
                 const externalGuild = client.guilds.cache.get(GuildID);
-                const externalLogChannel = externalGuild?.channels.cache.get(LogChannelID!) as any;
-                const externalBot = externalGuild?.members.cache.get(client.user!.id);
+                if (!externalGuild) continue;
+
+                const externalLogChannel = externalGuild.channels.cache.get(LogChannelID) as any;
+                const externalBot = await externalGuild.members.fetch(client.user!.id).catch(() => null);
+                const externalInvoker = await externalGuild.members.fetch(invokerId).catch(() => null);
+
+                if (!externalInvoker) continue;
+                if (externalGuild.ownerId !== externalInvoker.id && !externalInvoker.permissions.has(PermissionFlagsBits.KickMembers)) continue;
+                if (!externalBot) continue;
 
                 try {
-                    const externalMember = await externalGuild?.members.fetch(targetMember?.id)
+                    const externalMember = await externalGuild.members.fetch(targetMember.id).catch(() => null);
 
                     if (!externalMember) continue;
 
-                    if (externalMember?.roles.highest.position && externalBot?.roles.highest.position && externalMember.roles.highest.position >= externalBot.roles.highest.position) {
+                    if (externalMember.roles.highest.position >= externalBot.roles.highest.position) {
                         continue;
                     }
 
-                    await externalGuild?.members.kick(externalMember, "Automatic multi guilded kick")
+                    await externalGuild.members.kick(externalMember, "Automatic multi guilded kick");
 
                     const lEmbed = new EmbedBuilder()
                         .setColor("White")
@@ -121,26 +148,40 @@ export default {
 
                     await (externalLogChannel as any)?.send({ embeds: [lEmbed] });
                 } catch (err) {
+                    logger.error(
+                        "BUTTON",
+                        `Multi-guild kick failure in guild ${GuildID} for target ${targetMember.id}: ${(err as Error).message}\n${(err as Error).stack ?? ""}`
+                    );
                     continue;
                 }
             }
 
-            targetMember?.kick(reason);
+            try {
+                await targetMember.kick(reason);
+            } catch (err) {
+                logger.error(
+                    "BUTTON",
+                    `Failed to kick target ${targetMember.id} in guild ${guildId}: ${(err as Error).message}\n${(err as Error).stack ?? ""}`
+                );
+                const errorEmbed = new EmbedBuilder()
+                    .setColor(HexToColor(mConfig.embedColorError))
+                    .setDescription("`❌` Failed to kick the member. Please check role hierarchy and permissions.");
+                await message.edit({ embeds: [errorEmbed] });
+                return;
+            }
 
-            let dataGD = await ModerationModel.findOne({ GuildID: guildId })
-            if (!dataGD || !dataGD.LogChannelID) return;
-            const { LogChannelID } = dataGD
-            const logChannel = guild?.channels.cache.get(LogChannelID!) as any;
+            const dataGD = await ModerationModel.findOne({ GuildID: guildId });
+            const logChannel = dataGD?.LogChannelID ? guild?.channels.cache.get(dataGD.LogChannelID) as any : null;
 
             const lEmbed = new EmbedBuilder()
                 .setColor(HexToColor("FFFFFF"))
                 .setTitle("`❌` User Kicked")
                 .setAuthor({
-                    name: targetMember?.user.username,
-                    iconURL: targetMember?.user.displayAvatarURL(),
+                    name: targetMember.user.username,
+                    iconURL: targetMember.user.displayAvatarURL(),
                 })
                 .setDescription(
-                    `\`💡\` ${targetMember?.user.username} has been kicked from the server.`
+                    `\`💡\` ${targetMember.user.username} has been kicked from the server.`
                 )
                 .addFields(
                     { name: "Kicked by", value: `<@${user.id}>`, inline: true },
@@ -151,13 +192,22 @@ export default {
                     text: `${client.user?.username} - Logging system`,
                 });
 
-            logChannel?.send({ embeds: [lEmbed] });
+            if (logChannel) {
+                try {
+                    await logChannel.send({ embeds: [lEmbed] });
+                } catch (err) {
+                    logger.error(
+                        "BUTTON",
+                        `Failed to send kick log to channel ${dataGD?.LogChannelID} in guild ${guildId}: ${(err as Error).message}\n${(err as Error).stack ?? ""}`
+                    );
+                }
+            }
 
             rEmbed
                 .setColor(HexToColor(mConfig.embedColorSuccess))
-                .setDescription(`\`✅\` Successfully kicked ${targetMember?.user.username}.`);
+                .setDescription(`\`✅\` Successfully kicked ${targetMember.user.username}.`);
 
-            message.edit({ embeds: [rEmbed] });
+            await message.edit({ embeds: [rEmbed] });
             setTimeout(() => {
                 message.delete();
             }, 2_000);

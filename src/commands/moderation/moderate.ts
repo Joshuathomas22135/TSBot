@@ -85,7 +85,7 @@ export default {
         }
 
         // Role hierarchy check
-        if (targetMember.roles.highest.position > executor.roles.highest.position) {
+        if (targetMember.roles.highest.position >= executor.roles.highest.position) {
             const embed = new EmbedBuilder()
                 .setColor(HexToColor(mConfig.embedColorError))
                 .setDescription(mConfig.hasHigherRolePosition || "You cannot moderate this user due to role hierarchy.");
