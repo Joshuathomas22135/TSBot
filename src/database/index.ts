@@ -23,3 +23,6 @@ export async function disconnectMongoDB(): Promise<void> {
         logger.error("DATABASE", `Failed to disconnect: ${error}`);
     }
 }
+
+// Model Exports
+export { ModerationModel } from "./schemas/moderation.js";
