@@ -1,0 +1,454 @@
+{
+    "auditLogList": [
+        {
+            "event": "ChannelCreate",
+            "value": 10
+        },
+        {
+            "event": "ChannelDelete",
+            "value": 12
+        },
+        {
+            "event": "ChannelOverwriteCreate",
+            "value": 13
+        },
+        {
+            "event": "ChannelOverwriteDelete",
+            "value": 15
+        },
+        {
+            "event": "ChannelOverwriteUpdate",
+            "value": 14
+        },
+        {
+            "event": "ChannelUpdate",
+            "value": 11
+        },
+        {
+            "event": "MessageBulkDelete",
+            "value": 73
+        },
+        {
+            "event": "MessageDelete",
+            "value": 72
+        },
+        {
+            "event": "MessagePin",
+            "value": 74
+        },
+        {
+            "event": "MessageUnpin",
+            "value": 75
+        },
+        {
+            "event": "MessageUpdate",
+            "value": -70
+        },
+        {
+            "event": "ThreadCreate",
+            "value": 110
+        },
+        {
+            "event": "ThreadDelete",
+            "value": 112
+        },
+        {
+            "event": "ThreadUpdate",
+            "value": 111
+        },
+        {
+            "event": "EmojiCreate",
+            "value": 60
+        },
+        {
+            "event": "EmojiDelete",
+            "value": 62
+        },
+        {
+            "event": "EmojiUpdate",
+            "value": 61
+        },
+        {
+            "event": "GuildScheduledEventCreate",
+            "value": 100
+        },
+        {
+            "event": "GuildScheduledEventDelete",
+            "value": 102
+        },
+        {
+            "event": "GuildScheduledEventUpdate",
+            "value": 101
+        },
+        {
+            "event": "StickerCreate",
+            "value": 90
+        },
+        {
+            "event": "StickerDelete",
+            "value": 92
+        },
+        {
+            "event": "StickerUpdate",
+            "value": 91
+        },
+        {
+            "event": "RoleCreate",
+            "value": 30
+        },
+        {
+            "event": "RoleDelete",
+            "value": 32
+        },
+        {
+            "event": "RoleUpdate",
+            "value": 31
+        },
+        {
+            "event": "MemberAdd",
+            "value": -20
+        },
+        {
+            "event": "MemberBanAdd",
+            "value": 22
+        },
+        {
+            "event": "MemberBanRemove",
+            "value": 23
+        },
+        {
+            "event": "MemberDisconnect",
+            "value": 27
+        },
+        {
+            "event": "MemberKick",
+            "value": 20
+        },
+        {
+            "event": "MemberMove",
+            "value": 26
+        },
+        {
+            "event": "MemberPrune",
+            "value": 21
+        },
+        {
+            "event": "MemberRemove",
+            "value": -21
+        },
+        {
+            "event": "MemberRoleUpdate",
+            "value": 25
+        },
+        {
+            "event": "MemberUpdate",
+            "value": 24
+        },
+        {
+            "event": "VoiceStateUpdate",
+            "value": -22
+        },
+        {
+            "event": "ApplicationCommandPermissionUpdate",
+            "value": 121
+        },
+        {
+            "event": "AutoModerationBlockMessage",
+            "value": 143
+        },
+        {
+            "event": "AutoModerationFlagToChannel",
+            "value": 144
+        },
+        {
+            "event": "AutoModerationRuleCreate",
+            "value": 140
+        },
+        {
+            "event": "AutoModerationRuleDelete",
+            "value": 142
+        },
+        {
+            "event": "AutoModerationRuleUpdate",
+            "value": 141
+        },
+        {
+            "event": "AutoModerationUserCommunicationDisabled",
+            "value": 145
+        },
+        {
+            "event": "BotAdd",
+            "value": 28
+        },
+        {
+            "event": "IntegrationCreate",
+            "value": 80
+        },
+        {
+            "event": "IntegrationDelete",
+            "value": 82
+        },
+        {
+            "event": "IntegrationUpdate",
+            "value": 81
+        },
+        {
+            "event": "WebhookCreate",
+            "value": 50
+        },
+        {
+            "event": "WebhookDelete",
+            "value": 52
+        },
+        {
+            "event": "WebhookUpdate",
+            "value": 51
+        },
+        {
+            "event": "CreatorMonetizationRequestCreated",
+            "value": 150
+        },
+        {
+            "event": "CreatorMonetizationTermsAccepted",
+            "value": 151
+        },
+        {
+            "event": "GuildUpdate",
+            "value": 1
+        },
+        {
+            "event": "InviteCreate",
+            "value": 40
+        },
+        {
+            "event": "InviteDelete",
+            "value": 42
+        },
+        {
+            "event": "InviteUpdate",
+            "value": 41
+        },
+        {
+            "event": "StageInstanceCreate",
+            "value": 83
+        },
+        {
+            "event": "StageInstanceDelete",
+            "value": 85
+        },
+        {
+            "event": "StageInstanceUpdate",
+            "value": 84
+        }
+    ],
+    "locales": {
+        "id": "Indonesian (Bahasa Indonesia)",
+        "da": "Danish (Dansk)",
+        "de": "German (Deutsch)",
+        "en-GB": "English, UK",
+        "en-US": "English, US",
+        "es-ES": "Spanish (Español)",
+        "es-419": "Spanish, LATAM (Español Latinoamérica)",
+        "fr": "French (Français)",
+        "hr": "Croatian (Hrvatski)",
+        "it": "Italian (Italiano)",
+        "lt": "Lithuanian (Lietuviškai)",
+        "hu": "Hungarian (Magyar)",
+        "nl": "Dutch (Nederlands)",
+        "no": "Norwegian (Norsk)",
+        "pl": "Polish (Polski)",
+        "pt-BR": "Portuguese, Brazilian (Português do Brasil)",
+        "ro": "Romanian, Romania (Română)",
+        "fi": "Finnish (Suomi)",
+        "sv-SE": "Swedish (Svenska)",
+        "vi": "Vietnamese (Tiếng Việt)",
+        "tr": "Turkish (Türkçe)",
+        "cs": "Czech (Čeština)",
+        "el": "Greek (Ελληνικά)",
+        "bg": "Bulgarian (български)",
+        "ru": "Russian (Pусский)",
+        "uk": "Ukranian (Українська)",
+        "hi": "Hindi (हिन्दी)",
+        "th": "Thai (ไทย)",
+        "zh-CN": "Chinese, China (中文)",
+        "ja": "Japanese (日本語)",
+        "zh-TW": "Chinese, Taiwan (繁體中文)",
+        "ko": "Korean (한국어)"
+    },
+    "permissions": {
+        "0": "-",
+        "1": "Create Instant Invite",
+        "2": "Kick Members",
+        "4": "Ban Members",
+        "8": "Administrator",
+        "16": "Manage Channels",
+        "32": "Manage Guild",
+        "64": "Add Reactions",
+        "128": "View Audit Log",
+        "256": "Priority Speaker",
+        "512": "Stream",
+        "1024": "View Channel",
+        "2048": "Send Messages",
+        "4096": "Send TTS Messages",
+        "8192": "Manage Messages",
+        "16384": "Embed Links",
+        "32768": "Attach Files",
+        "65536": "Read Message History",
+        "131072": "Mention Everyone",
+        "262144": "Use External Emojis",
+        "524288": "View Guild Insights",
+        "1048576": "Connect",
+        "2097152": "Speak",
+        "4194304": "Mute Members",
+        "8388608": "Deafen Members",
+        "16777216": "Move Members",
+        "33554432": "Use Voice Activity",
+        "67108864": "Change Nickname",
+        "134217728": "Manage Nicknames",
+        "268435456": "Manage Permissions",
+        "536870912": "Manage Webhooks",
+        "1073741824": "Manage Guild Expressions",
+        "2147483648": "Use Application Commands",
+        "4294967296": "Request To Speak",
+        "8589934592": "Manage Events",
+        "17179869184": "Manage Threads",
+        "34359738368": "Create Public Threads",
+        "68719476736": "Create Private Threads",
+        "137438953472": "Use External Stickers",
+        "274877906944": "Send Messages in Threads",
+        "549755813888": "Use Embedded Activities",
+        "1099511627776": "Timeout Members",
+        "2199023255552": "View Creator Monetization Analytics",
+        "4398046511104": "Use Soundboard",
+        "8796093022208": "Create Guild Expressions",
+        "17592186044416": "Create Events",
+        "35184372088832": "Use External Sounds",
+        "70368744177664": "Send Voice Messages"
+    },
+    "channelTypes": {
+        "0": "Guild Text",
+        "1": "DM",
+        "2": "Guild Voice",
+        "3": "Group DM",
+        "4": "Guild Category",
+        "5": "Guild Announcement",
+        "10": "Announcement Thread",
+        "11": "Public Thread",
+        "12": "Private Thread",
+        "13": "Guild Stage Voice",
+        "14": "Guild Directory",
+        "15": "Guild Forum",
+        "16": "Guild Media"
+    },
+    "systemChannelFlags": {
+        "0": "-",
+        "1": "Suppress Join Notifications",
+        "2": "Suppress Premium Subscriptions",
+        "4": "Suppress Guild Reminder Notifications",
+        "8": "Suppress Join Notification Replies",
+        "16": "Suppress Role Subscription Purchase Notifications",
+        "32": "Suppress Role Subscription Purchase Notification Replies"
+    },
+    "channelFlags": {
+        "0": "-",
+        "2": "Pinned",
+        "16": "Require Tag",
+        "32768": "Hide Media Download Options"
+    },
+    "archiveDuration": {
+        "0": "-",
+        "60": "1 hour",
+        "1440": "24 hours",
+        "4320": "3 days",
+        "10080": "1 week"
+    },
+    "eventPrivacyLevel": {
+        "0": "-",
+        "2": "Guild Only"
+    },
+    "guildMemberFlags": {
+        "0": "-",
+        "1": "Member rejoined this server",
+        "2": "Member completed onboarding",
+        "4": "Member allowed to bypass guild verification",
+        "8": "Member started onboarding"
+    },
+    "triggerTypes": {
+        "1": "Contains words from a user defined list of keywords",
+        "3": "Represents generic spam",
+        "4": "Contains words from internal pre-defined wordsets",
+        "5": "Contains more unique mentions than allowed"
+    },
+    "eventTypes": {
+        "1": "When a member sends or edits a message in the server"
+    },
+    "timeoutDuration": {
+        "60": "60 seconds",
+        "300": "5 minutes",
+        "600": "10 minutes",
+        "3600": "1 hour",
+        "86400": "1 day",
+        "604800": "1 week"
+    },
+    "eventStatus": [
+        "-",
+        "Scheduled",
+        "Active",
+        "Completed",
+        "Cancelled"
+    ],
+    "eventEntityTypes": [
+        "-",
+        "Stage Instance",
+        "Voice",
+        "External"
+    ],
+    "verificationLevels": [
+        "None",
+        "Low",
+        "Medium",
+        "High",
+        "Highest"
+    ],
+    "explicitContentFilterLevels": [
+        "Disabled",
+        "Only server members without roles",
+        "All server members"
+    ],
+    "premiumTiers": [
+        "No Server Boost perks",
+        "Sever Boost level 1 perks",
+        "Sever Boost level 2 perks",
+        "Sever Boost level 3 perks"
+    ],
+    "stickerTypes": [
+        "-",
+        "Standard sticker",
+        "Guild sticker"
+    ],
+    "stickerFormats": [
+        "-",
+        "PNG",
+        "APNG (animated)",
+        "LOTTIE",
+        "GIF"
+    ],
+    "actionTypes": [
+        "-",
+        "Blocks message, prevents it from being posted and replies with the following message:",
+        "Logs content to",
+        "Timeouts the user for"
+    ],
+    "keywordPresetTypes": [
+        "-",
+        "Severe Profanity",
+        "Sexual Content",
+        "Insults & Slurs"
+    ],
+    "webhookTypes": [
+        "-",
+        "Incoming Webhook",
+        "Internal webhook / Channel Following",
+        "Application"
+    ]
+}

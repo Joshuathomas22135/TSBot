@@ -1,0 +1,4 @@
+.env
+temp
+node_modules
+src/database/js-schemas
